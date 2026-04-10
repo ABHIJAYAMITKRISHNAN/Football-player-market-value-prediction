@@ -290,24 +290,25 @@ can be integrated into a cohesive, deployable system.
 7. PROPOSED METHODOLOGY
 ================================================================================
 
-7.1 Dataset Description
-------------------------
+7.1 Original Dataset Description & Pre/Post Transformations
+-----------------------------------------------------------
 Source: Transfermarkt (web-scraped player data)
-Size: 10,754 players | 22 raw columns
-Coverage: Players from major football leagues worldwide
+Original Shape: 10,754 rows (players) | 22 original columns
+Coverage: Professional football players from major football leagues worldwide.
 
-Key columns include:
-- Identification: player (URL/unique ID), name, team, position
-- Physical: height, age
-- Performance: appearance, goals, assists, yellow cards, red cards,
-  goals conceded, clean sheets, minutes played
-- Health: days_injured, games_injured
-- Recognition: award (number of awards won)
-- Market: current_value (EUR), highest_value (career peak EUR)
-- Pre-encoded: position_encoded, winger (binary)
+Original Raw Features (The "Before" State):
+- Identification: player (URL/unique ID), name, team (raw string), position (15 granular categories)
+- Physical Attributes: height (cm), age (years)
+- Performance Metrics: appearance (count), goals (per-game rate), assists (per-game rate), 
+  yellow cards (per-game rate), red cards (count), second yellow cards (count), 
+  goals conceded (per-game rate), clean sheets (per-game rate), minutes played (count)
+- Health & Durability: days_injured (count), games_injured (count)
+- Recognition: award (integer count of trophies/awards)
+- Market Valuations: current_value (EUR), highest_value (career peak EUR)
+- Pre-encoded Flags: position_encoded (integer), winger (binary 0/1)
 
 Note: Goals, assists, yellow cards, goals conceded, and clean sheets
-are already per-game normalized rates in the source dataset.
+were already per-game normalized rates in the source dataset.
 
 7.2 Technology Stack
 ---------------------
@@ -337,7 +338,13 @@ Development Flow:
 
 7.3 Data Preprocessing Pipeline (src/preprocessing.py)
 -------------------------------------------------------
-The preprocessing pipeline performs the following operations:
+Following the execution of the data preprocessing pipeline, the dataset undergoes 
+significant transformation before being fed to the machine learning models. 
+The final preprocessed dataset passed to the training modules expands substantially 
+from 22 raw features to a rich feature space of over 30 columns, including 10 
+engineered features, 5 categorical groupings, and several encoded representations.
+
+The preprocessing pipeline performs the following operations on the raw dataset:
 
 Step 1 - Data Cleaning:
   - Remove duplicate players (based on Transfermarkt URL)

@@ -36,15 +36,25 @@ def load_and_preprocess(path="data/football.csv"):
     df[int_cols] = df[int_cols].fillna(0).astype(int)
     df[float_cols] = df[float_cols].fillna(0.0).astype(float)
     
-    # Outlier clipping
-    for col in ['current_value', 'highest_value']:
-        cap = df[col].quantile(0.99)
-        df[col] = df[col].clip(upper=cap)
+    # Outlier clipping removed to prevent capping top players' values at 45M
     
     # Feature engineering
     df['value_drop_ratio'] = (df['highest_value'] - df['current_value']) / (df['highest_value'] + 1)
     df['injury_burden'] = df['days_injured'] / (df['appearance'] + 1)
     df['productivity_score'] = df['goals'] + df['assists']
+    
+    # Per-90 metrics (handle division by zero)
+    safe_minutes = df['minutes played'].replace(0, np.nan)
+    df['goals_per_90'] = (df['goals'] / safe_minutes * 90).fillna(0)
+    df['assists_per_90'] = (df['assists'] / safe_minutes * 90).fillna(0)
+    df['productivity_per_90'] = df['goals_per_90'] + df['assists_per_90']
+    
+    # Target Encoding for team (replace team label with avg market value of that team)
+    team_means = df.groupby('team')['current_value'].mean()
+    df['team_target_encoded'] = df['team'].map(team_means)
+    # Save the mapping for inference/frontend usage
+    os.makedirs('saved_models', exist_ok=True)
+    joblib.dump(team_means.to_dict(), 'saved_models/team_target_encoding.pkl')
     
     # Age groups
     def age_bin(age):
@@ -56,10 +66,11 @@ def load_and_preprocess(path="data/football.csv"):
     
     # Position groups
     def pos_group(pos):
-        if 'Goalkeeper' in pos: return 'GK'
-        if 'Defender' in pos: return 'DEF'
-        if 'midfield' in pos: return 'MID'
-        if 'Attack' in pos: return 'FWD'
+        pos_lower = str(pos).lower()
+        if 'goalkeeper' in pos_lower: return 'GK'
+        if 'defender' in pos_lower: return 'DEF'
+        if 'midfield' in pos_lower: return 'MID'
+        if 'attack' in pos_lower: return 'FWD'
         return 'MID' # Default
     df['position_group'] = df['position'].apply(pos_group)
     
@@ -76,11 +87,9 @@ def load_and_preprocess(path="data/football.csv"):
         else: return 'Low'
     df['injury_risk_label'] = df.apply(label_injury_risk, axis=1)
     
-    # Encoding
+    # Encoding (keep label encoding for remaining categorical columns)
     encode_cols = ['position', 'team', 'position_group', 'age_group', 'injury_risk_label']
     label_encoders = {}
-    
-    os.makedirs('saved_models', exist_ok=True)
     
     for col in encode_cols:
         le = LabelEncoder()

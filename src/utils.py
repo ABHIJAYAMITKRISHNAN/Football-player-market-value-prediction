@@ -3,7 +3,13 @@ BASE_FEATURES = [
     'yellow cards', 'red cards', 'minutes played',
     'days_injured', 'games_injured', 'award',
     'position_encoded', 'winger',
-    'value_drop_ratio', 'injury_burden', 'productivity_score'
+    'value_drop_ratio', 'injury_burden', 'productivity_score',
+    # GK features (zeros for outfield players)
+    'goals conceded', 'clean sheets',
+    # Per-90 metrics
+    'goals_per_90', 'assists_per_90', 'productivity_per_90',
+    # Target-encoded team (avg market value of club)
+    'team_target_encoded'
 ]
 
 GK_EXTRA_FEATURES = ['goals conceded', 'clean sheets']

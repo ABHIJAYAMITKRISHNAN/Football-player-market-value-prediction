@@ -5,7 +5,7 @@ import joblib
 import shap
 import matplotlib.pyplot as plt
 import plotly.express as px
-from frontend.components.styles import apply_custom_styles, render_kpi
+from frontend.components.styles import apply_custom_styles
 from frontend.components.charts import apply_theme
 from src.preprocessing import load_and_preprocess
 from src.utils import INJURY_FEATURES

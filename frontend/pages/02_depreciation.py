@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import plotly.express as px
-from frontend.components.styles import apply_custom_styles, render_kpi
+from frontend.components.styles import apply_custom_styles
 from frontend.components.charts import apply_theme
 from src.preprocessing import load_and_preprocess
 

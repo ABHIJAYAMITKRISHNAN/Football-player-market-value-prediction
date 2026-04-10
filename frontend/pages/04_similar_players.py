@@ -17,10 +17,10 @@ df = get_data()
 st.markdown('<div class="section-header">🔍 Similar Player Discovery</div>', unsafe_allow_html=True)
 
 player_name = st.selectbox("Find players similar to:", options=[""] + sorted(df['name'].tolist()))
-same_pos = st.checkbox("Same Position Group Only")
+diff_pos = st.checkbox("Include Different Position Groups")
 
 if player_name:
-    results = find_similar_players(player_name, df, same_position=same_pos)
+    results = find_similar_players(player_name, df, include_different_positions=diff_pos)
     
     if not results.empty:
         st.subheader(f"Top 10 Matches for {player_name}")
@@ -43,10 +43,18 @@ if player_name:
         # Simple normalize
         q_vals = []
         m_vals = []
+        q_raws = []
+        m_raws = []
+        import numpy as np
         for col in radar_cols:
-            max_v = df[col].max() + 1e-9
-            q_vals.append(q_row[col] / max_v)
-            m_vals.append(m_row[col] / max_v)
+            # Drop zeroes for better quantile estimation for goals/assists, fallback to max if needed
+            val_dist = df[df[col] > 0][col] if (df[col] > 0).any() else df[col]
+            max_v = val_dist.quantile(0.95) if not val_dist.empty else df[col].max() + 1e-9
             
-        fig = create_radar_chart(radar_cols, q_vals, m_vals, player_name, best_match['name'])
+            q_vals.append(np.clip(q_row[col] / max_v, 0, 1))
+            m_vals.append(np.clip(m_row[col] / max_v, 0, 1))
+            q_raws.append(q_row[col])
+            m_raws.append(m_row[col])
+            
+        fig = create_radar_chart(radar_cols, q_vals, m_vals, player_name, best_match['name'], q_raws, m_raws)
         st.plotly_chart(fig, use_container_width=True)

@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 import shap
 import matplotlib.pyplot as plt
-from frontend.components.styles import apply_custom_styles, render_kpi
+from frontend.components.styles import apply_custom_styles
 from src.preprocessing import load_and_preprocess
 from src.utils import BASE_FEATURES
 
@@ -57,7 +57,7 @@ if st.button("Predict Market Value"):
     c1, c2 = st.columns([1, 2])
     
     with c1:
-        render_kpi("Predicted Value", f"€{pred_val:,.0f}")
+        st.metric("Predicted Value", f"€{pred_val:,.0f}")
         st.caption("Confidence Range (±15%):")
         st.write(f"€{pred_val*0.85:,.0f} - €{pred_val*1.15:,.0f}")
         
